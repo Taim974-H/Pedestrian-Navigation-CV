@@ -8,20 +8,16 @@ class HueRange:
     """Defines the hue range for road and pavement detection"""
     PAVEMENT_LOWER = 10
     PAVEMENT_UPPER = 40
+
     ROAD_LOWER_1 = 0
-    ROAD_UPPER_1 = 10
     ROAD_LOWER_2 = 40
+
+    ROAD_UPPER_1 = 10
     ROAD_UPPER_2 = 180
 
 class RoadSegmentation:
     def __init__(self, image_path: str, resize_dims: tuple = (640, 480)):
-        """
-        Initialize the road segmentation processor.
-        
-        Args:
-            image_path (str): Path to the input image
-            resize_dims (tuple): Dimensions for resizing the image (width, height)
-        """
+        # Initialize the road segmentation processor.
         self.image = cv2.imread(image_path)
         if resize_dims:
             self.image = cv2.resize(self.image, resize_dims)
@@ -29,15 +25,7 @@ class RoadSegmentation:
         self.kernel = np.ones((8, 8), np.uint8)
 
     def create_roi_mask(self, height_fraction: float = 0.3) -> np.ndarray:
-        """
-        Create a Region of Interest (ROI) mask for the lower part of the image.
-        
-        Args:
-            height_fraction (float): Fraction of image height to include in ROI
-        
-        Returns:
-            np.ndarray: Binary mask for ROI
-        """
+        # Create a Region of Interest (ROI) mask for the lower part of the image.
         roi_mask = np.zeros((self.height, self.width), dtype=np.uint8)
         polygon = np.array([
             [(0, self.height),
@@ -49,41 +37,22 @@ class RoadSegmentation:
         return roi_mask
 
     def extract_hue_channel(self) -> np.ndarray:
-        """
-        Extract the hue channel from the image.
-        
-        Returns:
-            np.ndarray: Hue channel
-        """
-        
+        # Extract the hue channel from the image.
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         return hsv[:, :, 0]
 
-    def plot_hue_histogram(self, hue: np.ndarray) -> None:
-        """
-        Plot histogram of hue values.
-        
-        Args:
-            hue (np.ndarray): Hue channel data
-        """
-        hist = cv2.calcHist([hue], [0], None, [180], [0, 180])
-        plt.figure(figsize=(10, 5))
-        plt.plot(hist)
-        plt.title('Hue Histogram')
-        plt.xlabel('Hue Value')
-        plt.ylabel('Frequency')
-        plt.show()
+    # def plot_hue_histogram(self, hue: np.ndarray) -> None:
+    #     # Plot histogram of hue values.
+    #     hist = cv2.calcHist([hue], [0], None, [180], [0, 180])
+    #     plt.figure(figsize=(10, 5))
+    #     plt.plot(hist)
+    #     plt.title('Hue Histogram')
+    #     plt.xlabel('Hue Value')
+    #     plt.ylabel('Frequency')
+    #     plt.show()
 
     def create_road_mask(self, hue: np.ndarray) -> np.ndarray:
-        """
-        Create a binary mask for road areas.
-        
-        Args:
-            hue (np.ndarray): Hue channel data
-        
-        Returns:
-            np.ndarray: Binary mask for road areas
-        """
+        # Create a binary mask for road areas.
         road_mask_1 = cv2.inRange(hue, HueRange.ROAD_LOWER_1, HueRange.ROAD_UPPER_1)
         road_mask_2 = cv2.inRange(hue, HueRange.ROAD_LOWER_2, HueRange.ROAD_UPPER_2)
         return cv2.bitwise_or(road_mask_1, road_mask_2)
@@ -94,29 +63,14 @@ class RoadSegmentation:
         return pavement_mask
 
     def refine_mask(self, mask: np.ndarray) -> np.ndarray:
-        """
-        Apply morphological operations to refine a mask.
-        
-        Args:
-            mask (np.ndarray): Input binary mask
-        
-        Returns:
-            np.ndarray: Refined binary mask
-        """
+        # Apply morphological operations to refine a mask.
         refined = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel)
         return cv2.morphologyEx(refined, cv2.MORPH_CLOSE, self.kernel)
 
     def segment_image(self, mask: np.ndarray) -> np.ndarray:
-        """
-        Apply mask to segment the original image.
-        
-        Args:
-            mask (np.ndarray): Binary mask to apply
-        
-        Returns:
-            np.ndarray: Segmented image
-        """
+        # Apply mask to segment the original image.
         return cv2.bitwise_and(self.image, self.image, mask=mask)
+    
     
     def check_center_region(self, road_mask: np.ndarray, pavement_mask: np.ndarray, roi_height: int = 50, roi_width: int = 100) -> str:
         """
@@ -181,28 +135,28 @@ class RoadSegmentation:
                     (x_center - roi_width // 2, y_bottom - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, box_color, 2)
         
-        # Draw direction arrow only if needed
-        if direction != 'none' and result == 'road':
-            arrow_thickness = 2
-            arrow_size = 20
+        # # Draw direction arrow only if needed
+        # if direction != 'none' and result == 'road':
+        #     arrow_thickness = 2
+        #     arrow_size = 20
             
-            if direction == 'left':
-                start_point = (x_center + roi_width // 2 + 10, y_bottom + roi_height // 2)
-                end_point = (start_point[0] - arrow_size, start_point[1])
-                cv2.arrowedLine(overlay_image, start_point, end_point, 
-                            arrow_color, arrow_thickness, tipLength=0.5)
-                cv2.putText(overlay_image, "Move Left", 
-                        (start_point[0] - 90, start_point[1] - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, arrow_color, 2)
+        #     if direction == 'left':
+        #         start_point = (x_center + roi_width // 2 + 10, y_bottom + roi_height // 2)
+        #         end_point = (start_point[0] - arrow_size, start_point[1])
+        #         cv2.arrowedLine(overlay_image, start_point, end_point, 
+        #                     arrow_color, arrow_thickness, tipLength=0.5)
+        #         cv2.putText(overlay_image, "Move Left", 
+        #                 (start_point[0] - 90, start_point[1] - 10),
+        #                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, arrow_color, 2)
             
-            elif direction == 'right':
-                start_point = (x_center - roi_width // 2 - 10, y_bottom + roi_height // 2)
-                end_point = (start_point[0] + arrow_size, start_point[1])
-                cv2.arrowedLine(overlay_image, start_point, end_point, 
-                            arrow_color, arrow_thickness, tipLength=0.5)
-                cv2.putText(overlay_image, "Move Right", 
-                        (start_point[0], start_point[1] - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, arrow_color, 2)
+        #     elif direction == 'right':
+        #         start_point = (x_center - roi_width // 2 - 10, y_bottom + roi_height // 2)
+        #         end_point = (start_point[0] + arrow_size, start_point[1])
+        #         cv2.arrowedLine(overlay_image, start_point, end_point, 
+        #                     arrow_color, arrow_thickness, tipLength=0.5)
+        #         cv2.putText(overlay_image, "Move Right", 
+        #                 (start_point[0], start_point[1] - 10),
+        #                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, arrow_color, 2)
         
         return overlay_image
 
@@ -264,15 +218,7 @@ class RoadSegmentation:
 
     def _display_results(self, road_mask: np.ndarray, pavement_mask: np.ndarray,
                             road_segment: np.ndarray, pavement_segment: np.ndarray) -> None:
-            """
-            Display processing results.
-            
-            Args:
-                road_mask (np.ndarray): Road binary mask
-                pavement_mask (np.ndarray): Pavement binary mask
-                road_segment (np.ndarray): Segmented road image
-                pavement_segment (np.ndarray): Segmented pavement image
-            """
+        
             cv2.imshow('Road Mask', road_mask)
             cv2.imshow('Pavement Mask', pavement_mask)
             cv2.imshow('Road Segment', road_segment)
@@ -281,15 +227,7 @@ class RoadSegmentation:
             cv2.destroyAllWindows()
 
     def process(self, show_results: bool = True) -> tuple:
-        """
-        Process the image and perform road/pavement segmentation.
-        
-        Args:
-            show_results (bool): Whether to display results
-        
-        Returns:
-            tuple: (road_segment, pavement_segment, result_image, direction)
-        """
+       
         # Create masks and segments
         roi_mask = self.create_roi_mask()
         hue = self.extract_hue_channel()
@@ -307,12 +245,12 @@ class RoadSegmentation:
         # Check center region
         center_result = self.check_center_region(road_mask, pavement_mask)
         
-        # Only detect direction if we're on road
+        # # Only detect direction if we're on road
         direction = 'none'
         if center_result == 'road':
             direction = self.detect_pavement_direction(road_mask, pavement_mask)
         
-        # Create result image
+        # # Create result image
         result_image = self.draw_pavement_box(center_result, direction)
         
         if show_results:
@@ -327,5 +265,5 @@ class RoadSegmentation:
 
 
 if __name__ == "__main__":
-    segmenter = RoadSegmentation('testimage2.jpg')
+    segmenter = RoadSegmentation('testimage.jpg')
     road_segment, pavement_segment,result_image, direction = segmenter.process()
