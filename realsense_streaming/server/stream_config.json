@@ -1,0 +1,8 @@
+{
+    "stream_width": 640,
+    "stream_height": 480,
+    "stream_fps": 30,
+    "enable_depth": false,
+    "compression_quality": 80,
+    "max_clients": 5
+}

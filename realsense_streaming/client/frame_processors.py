@@ -9,9 +9,9 @@ def process_frame(frame_data):
     # Example processing:
     print(f"Frame received. Shape: {color_frame.shape}")
     
-    # Add your custom processing logic here
-    # For example:
+    # processing logic here
+    # ex:
     # - Object detection
     # - Color analysis
     # - Motion tracking
-    # etc.
+    # - ...

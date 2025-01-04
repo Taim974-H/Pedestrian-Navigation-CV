@@ -6,7 +6,7 @@ from frame_processors import process_frame
 from camera import RealSenseStreamClient
 
 def run_client():
-    client = RealSenseStreamClient('10.100.14.69')  # Replace with your server IP
+    client = RealSenseStreamClient('192.168.230.229')  # Replace with your server IP
     
     if client.connect():
         client.stream_frames(callback=process_frame, show_preview=True)
